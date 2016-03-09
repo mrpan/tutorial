@@ -44,8 +44,12 @@ import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 import utils.Gps;
@@ -167,26 +171,82 @@ public class ShpTool extends JFrame {
 	        try {
 	            while( iterator.hasNext()  ){
 	                 SimpleFeature feature = iterator.next();
-	                 GeometryCollection geometrys = (GeometryCollection) feature.getDefaultGeometry();
+	                 Geometry geometry =  (Geometry) feature.getDefaultGeometry();
 	                 featureType = feature.getFeatureType();//feature类型
 	                 SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureType);
-	                 Coordinate[] coordinates = geometrys.getCoordinates(); 
+	                 Coordinate[] coordinates =  null;
 	                 List<Coordinate> coords = new ArrayList<Coordinate>();
-	                
-	                 for(int i =0 ;i<coordinates.length ;i++){
-	                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-	                	 System.out.println(gps.getWgLon());
-	                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
-	                	 coords.add(cd);
-	                 }
+	                 String geomType = geometry.getGeometryType();
 	                 GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-	                 Polygon polygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
-	                 Polygon[] polygons = new Polygon[]{polygon};
-	                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons);
-	                 featureBuilder.add(multipolygon);
-	                 SimpleFeature multifeature = featureBuilder.buildFeature( "fid" );
+	               
+	                 SimpleFeature multifeature=null;
+	                 System.out.println(geomType);
+	                 switch(geomType){
+	                 case "MultiPolygon":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.getWgLon());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+		                
+		                 Polygon polygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
+		                 Polygon[] polygons = new Polygon[]{polygon};
+		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons);
+		                 featureBuilder.add(multipolygon);
+		                 multifeature = featureBuilder.buildFeature( "fid" );
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiLineString":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 LineString lineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
+		                 LineString[] lineStrings = new LineString[]{lineString};
+		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings);
+		                 featureBuilder.add(multiline);
+		                multifeature = featureBuilder.buildFeature( "fid" );
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiPoint":
+	                	 coordinates= geometry.getCoordinates();
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 System.out.println(coords);
+	                	 MultiPoint multipoint =geometryFactory.createMultiPoint(coords.toArray(new Coordinate[coords.size()]));
+		                
+		                 featureBuilder.add(multipoint);
+		                multifeature = featureBuilder.buildFeature( "fid" );
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "Polygon":
+	                	 coordinates= geometry.getCoordinates();
+	                	 break;
+	                 case "LineString":
+	                	 coordinates= geometry.getCoordinates();
+	                	 break;
+	                 case "Point":
+	                	 coordinates= geometry.getCoordinates();
+	                	 System.out.println(coordinates);
+	                	 break;
+	                	
+	                 }
 	                 
-	                 features.add(multifeature);
 	                 
 	            }
 	            outputSHP(file,features,featureType);
@@ -195,6 +255,7 @@ public class ShpTool extends JFrame {
 				e1.printStackTrace();
 			}
 	        finally {
+	        	store.dispose();
 	            iterator.close();
 	        }
 	}
@@ -273,6 +334,7 @@ public class ShpTool extends JFrame {
              problem.printStackTrace();
              transaction.rollback();
          } finally {
+        	 newDataStore.dispose();
              transaction.close();
          }
          JOptionPane.showMessageDialog(null,"转换成功", "PLAIN_MESSAGE", JOptionPane.PLAIN_MESSAGE);
