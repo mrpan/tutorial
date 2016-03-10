@@ -291,8 +291,8 @@ public class ShpTool extends JFrame {
 				e1.printStackTrace();
 			}
 	        finally {
-	        	store.dispose();
-	            iterator.close();
+//	        	store.dispose();
+//	            iterator.close();
 	        }
 	}
 	
