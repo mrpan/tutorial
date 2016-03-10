@@ -231,18 +231,54 @@ public class ShpTool extends JFrame {
 		                
 		                 featureBuilder.add(multipoint);
 		                multifeature = featureBuilder.buildFeature( "fid" );
-		                 
 		                 features.add(multifeature);
 	                	 break;
 	                 case "Polygon":
 	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.getWgLon());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+		                
+		                 Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
+		               
+		                 featureBuilder.add(spolygon);
+		                 multifeature = featureBuilder.buildFeature( "fid" );
+		                 
+		                 features.add(multifeature);
 	                	 break;
 	                 case "LineString":
 	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
+		                 featureBuilder.add(slineString);
+		                multifeature = featureBuilder.buildFeature( "fid" );
+		                 
+		                 features.add(multifeature);
 	                	 break;
 	                 case "Point":
 	                	 coordinates= geometry.getCoordinates();
-	                	 System.out.println(coordinates);
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 Point point =geometryFactory.createPoint(coords.get(0));
+		                
+		                 featureBuilder.add(point);
+		                multifeature = featureBuilder.buildFeature( "fid" );
+		                 features.add(multifeature);
 	                	 break;
 	                	
 	                 }
