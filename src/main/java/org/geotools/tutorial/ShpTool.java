@@ -184,10 +184,10 @@ public class ShpTool extends JFrame {
 	                 switch(geomType){
 	                 case "MultiPolygon":
 	                	 coordinates= geometry.getCoordinates();
-	                	 
+	                	 System.out.println(coordinates);
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-		                	 System.out.println(gps.getWgLon());
+		                	 
 		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
 		                	 coords.add(cd);
 		                 }
