@@ -183,35 +183,74 @@ public class ShpTool extends JFrame {
 	                 System.out.println(geomType);
 	                 switch(geomType){
 	                 case "MultiPolygon":
-	                	 coordinates= geometry.getCoordinates();
-	                	 System.out.println(coordinates);
-	                	 for(int i =0 ;i<coordinates.length ;i++){
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-		                	 
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
-		                	 coords.add(cd);
-		                 }
+	                	 int geometryNum = geometry.getNumGeometries();
+	                	 List<Polygon> polygons = new ArrayList<Polygon>(); 
+	                	 for(int i=0;i<geometryNum;i++){//polygon个数
+	                		 Polygon po= (Polygon) geometry.getGeometryN(i); 
+	                		 int numInteriorRing = po.getNumInteriorRing();
+	                		 LineString  exteriorRing = po.getExteriorRing();
+	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
+	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.gps84_To_Gcj02(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newExteriorcoordinates.add(cd);
+			                 }
+	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
+	                		 List<LinearRing> newInteriorRings = new ArrayList<LinearRing>();
+	                		 for(int j=0;j<numInteriorRing;j++){//内圈
+	                			 LineString interiorRing = po.getInteriorRingN(j);
+	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
+	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
+	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
+				                	 Gps gps = PositionUtil.gps84_To_Gcj02(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 
+				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 newInteriorcoordinates.add(cd);
+				                 }
+	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
+	                			 LinearRing newInteriorRing = geometryFactory.createLinearRing(tem);
+	                			 newInteriorRings.add(newInteriorRing);
+	                		 }
+	                		 LinearRing[] ls =  newInteriorRings.toArray(new LinearRing[newInteriorRings.size()]);
+	                		 Polygon polygon =geometryFactory.createPolygon(newExteriorRing, ls);
+	                		 polygons.add(polygon);
+	                	 }
+	                	 
 		                
-		                 Polygon polygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
-		                 Polygon[] polygons = new Polygon[]{polygon};
-		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons);
+		                 Polygon[] polygons2 = polygons.toArray(new Polygon[polygons.size()]);
+		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons2);
 		                 featureBuilder.add(multipolygon);
 		                 multifeature = featureBuilder.buildFeature( "fid" );
 		                 
 		                 features.add(multifeature);
 	                	 break;
 	                 case "MultiLineString":
-	                	 coordinates= geometry.getCoordinates();
 	                	 
-	                	 for(int i =0 ;i<coordinates.length ;i++){
-	                		 
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
-		                	 coords.add(cd);
-		                 }
-	                	 LineString lineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
-		                 LineString[] lineStrings = new LineString[]{lineString};
-		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings);
+	                	 int lineStringNum = geometry.getNumGeometries();
+	                	 List<LineString> lineStrings = new ArrayList<LineString>(); 
+	                	 
+	                	 for(int i=0;i<lineStringNum;i++){//多个LineString
+	                		 LineString lineString = (LineString) geometry.getGeometryN(i);
+	                		 Coordinate[] lineStringcoordinates = lineString.getCoordinates();
+	   
+	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.gps84_To_Gcj02(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newLineStringcoordinates.add(cd);
+			                 }
+	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
+	                		 LineString newLineString = geometryFactory.createLineString(newls); 
+	                		 lineStrings.add(newLineString);
+	                	 }
+	                	 
+	                	 LineString[] lineStrings2 = lineStrings.toArray(new LineString[lineStrings.size()]);
+	                	 
+	                	
+		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings2);
 		                 featureBuilder.add(multiline);
 		                multifeature = featureBuilder.buildFeature( "fid" );
 		                 
