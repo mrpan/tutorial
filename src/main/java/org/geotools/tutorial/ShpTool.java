@@ -86,14 +86,14 @@ public class ShpTool extends JFrame {
 		setBounds(100, 100, 450, 300);
 		JButton button = new JButton("添加csv文件");
 		JButton buttonshp = new JButton("预览shp文件");
-		JButton shppy = new JButton("shp文件加偏移");
+		JButton shppy = new JButton("shp文件wgs84-gcj02");
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
 		button.setVerticalAlignment(SwingConstants.TOP);
 		button.setHorizontalAlignment(SwingConstants.LEFT);
 		shppy.setLocation(240, 10);
-		shppy.setSize(120, 23);
+		shppy.setSize(180, 23);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -178,10 +178,9 @@ public class ShpTool extends JFrame {
 	                 List<Coordinate> coords = new ArrayList<Coordinate>();
 	                 String geomType = geometry.getGeometryType();
 	                 GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
-	               
+	                 List<Object> attr=feature.getAttributes();
 	                 SimpleFeature multifeature=null;
 	                 System.out.println(geomType);
-	                 
 	                 
 	                 switch(geomType){
 	                 case "MultiPolygon":
@@ -223,8 +222,9 @@ public class ShpTool extends JFrame {
 		                
 		                 Polygon[] polygons2 = polygons.toArray(new Polygon[polygons.size()]);
 		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons2);
-		                 featureBuilder.add(multipolygon);
-		                 multifeature = featureBuilder.buildFeature( "fid" );
+//		                 featureBuilder.add(multipolygon);
+		                 attr.set(0, multipolygon);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 
 		                 features.add(multifeature);
 	                	 break;
@@ -253,8 +253,8 @@ public class ShpTool extends JFrame {
 	                	 
 	                	
 		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings2);
-		                 featureBuilder.add(multiline);
-		                multifeature = featureBuilder.buildFeature( "fid" );
+		                 attr.set(0, multiline);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 
 		                 features.add(multifeature);
 	                	 break;
@@ -270,8 +270,8 @@ public class ShpTool extends JFrame {
 	                	 System.out.println(coords);
 	                	 MultiPoint multipoint =geometryFactory.createMultiPoint(coords.toArray(new Coordinate[coords.size()]));
 		                
-		                 featureBuilder.add(multipoint);
-		                multifeature = featureBuilder.buildFeature( "fid" );
+	                	  attr.set(0, multipoint);
+			          multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 features.add(multifeature);
 	                	 break;
 	                 case "Polygon":
@@ -286,8 +286,8 @@ public class ShpTool extends JFrame {
 		                
 		                 Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
 		               
-		                 featureBuilder.add(spolygon);
-		                 multifeature = featureBuilder.buildFeature( "fid" );
+		                  attr.set(0, spolygon);
+				          multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 
 		                 features.add(multifeature);
 	                	 break;
@@ -301,8 +301,8 @@ public class ShpTool extends JFrame {
 		                	 coords.add(cd);
 		                 }
 	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
-		                 featureBuilder.add(slineString);
-		                multifeature = featureBuilder.buildFeature( "fid" );
+	                	 attr.set(0, slineString);
+				     multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 
 		                 features.add(multifeature);
 	                	 break;
@@ -317,8 +317,8 @@ public class ShpTool extends JFrame {
 		                 }
 	                	 Point point =geometryFactory.createPoint(coords.get(0));
 		                
-		                 featureBuilder.add(point);
-		                multifeature = featureBuilder.buildFeature( "fid" );
+	                	 attr.set(0, point);
+					  multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 features.add(multifeature);
 	                	 break;
 	                	
