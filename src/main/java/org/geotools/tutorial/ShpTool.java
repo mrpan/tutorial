@@ -181,6 +181,8 @@ public class ShpTool extends JFrame {
 	               
 	                 SimpleFeature multifeature=null;
 	                 System.out.println(geomType);
+	                 
+	                 
 	                 switch(geomType){
 	                 case "MultiPolygon":
 	                	 int geometryNum = geometry.getNumGeometries();
