@@ -87,6 +87,8 @@ public class ShpTool extends JFrame {
 		JButton button = new JButton("添加csv文件");
 		JButton buttonshp = new JButton("预览shp文件");
 		JButton shppy = new JButton("shp文件wgs84-gcj02");
+		JButton gcjto84 = new JButton("shp文件gcj02-wgs84");
+		JButton bdTo84 = new JButton("shp文件bd09-wgs84");
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
@@ -94,6 +96,12 @@ public class ShpTool extends JFrame {
 		button.setHorizontalAlignment(SwingConstants.LEFT);
 		shppy.setLocation(240, 10);
 		shppy.setSize(180, 23);
+		
+		gcjto84.setLocation(10,60);
+		gcjto84.setSize(180, 30);
+		
+		bdTo84.setLocation(190,60);
+		bdTo84.setSize(180, 30);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -129,6 +137,27 @@ public class ShpTool extends JFrame {
 				}
 		}});
 		contailner.add(shppy);
+		
+		gcjto84.addActionListener(new ActionListener(){
+		       public void actionPerformed(ActionEvent e) {
+		    	   try {
+		    		   shpGcjTo84();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		}});
+		contailner.add(gcjto84);
+		bdTo84.addActionListener(new ActionListener(){
+		       public void actionPerformed(ActionEvent e) {
+		    	   try {
+//		    		   shpGcjTo84();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		}});
+		contailner.add(bdTo84);
 	}
 	
 	private void lookShp() throws Exception{
@@ -152,7 +181,7 @@ public class ShpTool extends JFrame {
 	        JMapFrame.showMap(map);
 	}
 	/**
-	 * shp偏移
+	 * shp偏移 84-gcj02
 	 * @throws IOException
 	 */
 	private void shpOffset() throws IOException{
@@ -336,6 +365,375 @@ public class ShpTool extends JFrame {
 //	            iterator.close();
 	        }
 	}
+	
+	private void shpGcjTo84() throws IOException{
+		 File file = JFileDataStoreChooser.showOpenFile("shp", null);
+	        if (file == null) {
+	            return;
+	        }
+
+	        FileDataStore store = FileDataStoreFinder.getDataStore(file);
+	        SimpleFeatureSource featureSource = store.getFeatureSource();
+	        SimpleFeatureCollection collection = featureSource.getFeatures();
+	        SimpleFeatureIterator iterator = collection.features();//所有要素
+	        
+           List<SimpleFeature> features = new ArrayList<SimpleFeature>();
+           SimpleFeatureType featureType =null;
+	        try {
+	            while( iterator.hasNext()  ){
+	                 SimpleFeature feature = iterator.next();
+	                 Geometry geometry =  (Geometry) feature.getDefaultGeometry();
+	                 featureType = feature.getFeatureType();//feature类型
+	                 SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureType);
+	                 Coordinate[] coordinates =  null;
+	                 List<Coordinate> coords = new ArrayList<Coordinate>();
+	                 String geomType = geometry.getGeometryType();
+	                 GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+	                 List<Object> attr=feature.getAttributes();
+	                 SimpleFeature multifeature=null;
+	                 System.out.println(geomType);
+	                 
+	                 switch(geomType){
+	                 case "MultiPolygon":
+	                	 int geometryNum = geometry.getNumGeometries();
+	                	 List<Polygon> polygons = new ArrayList<Polygon>(); 
+	                	 for(int i=0;i<geometryNum;i++){//polygon个数
+	                		 Polygon po= (Polygon) geometry.getGeometryN(i); 
+	                		 int numInteriorRing = po.getNumInteriorRing();
+	                		 LineString  exteriorRing = po.getExteriorRing();
+	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
+	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.gcj_To_Gps84(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newExteriorcoordinates.add(cd);
+			                 }
+	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
+	                		 List<LinearRing> newInteriorRings = new ArrayList<LinearRing>();
+	                		 for(int j=0;j<numInteriorRing;j++){//内圈
+	                			 LineString interiorRing = po.getInteriorRingN(j);
+	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
+	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
+	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
+				                	 Gps gps = PositionUtil.gcj_To_Gps84(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 
+				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 newInteriorcoordinates.add(cd);
+				                 }
+	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
+	                			 LinearRing newInteriorRing = geometryFactory.createLinearRing(tem);
+	                			 newInteriorRings.add(newInteriorRing);
+	                		 }
+	                		 LinearRing[] ls =  newInteriorRings.toArray(new LinearRing[newInteriorRings.size()]);
+	                		 Polygon polygon =geometryFactory.createPolygon(newExteriorRing, ls);
+	                		 polygons.add(polygon);
+	                	 }
+	                	 
+		                
+		                 Polygon[] polygons2 = polygons.toArray(new Polygon[polygons.size()]);
+		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons2);
+//		                 featureBuilder.add(multipolygon);
+		                 attr.set(0, multipolygon);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiLineString":
+	                	 
+	                	 int lineStringNum = geometry.getNumGeometries();
+	                	 List<LineString> lineStrings = new ArrayList<LineString>(); 
+	                	 
+	                	 for(int i=0;i<lineStringNum;i++){//多个LineString
+	                		 LineString lineString = (LineString) geometry.getGeometryN(i);
+	                		 Coordinate[] lineStringcoordinates = lineString.getCoordinates();
+	   
+	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.gcj_To_Gps84(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newLineStringcoordinates.add(cd);
+			                 }
+	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
+	                		 LineString newLineString = geometryFactory.createLineString(newls); 
+	                		 lineStrings.add(newLineString);
+	                	 }
+	                	 
+	                	 LineString[] lineStrings2 = lineStrings.toArray(new LineString[lineStrings.size()]);
+	                	 
+	                	
+		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings2);
+		                 attr.set(0, multiline);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiPoint":
+	                	 coordinates= geometry.getCoordinates();
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 System.out.println(coords);
+	                	 MultiPoint multipoint =geometryFactory.createMultiPoint(coords.toArray(new Coordinate[coords.size()]));
+		                
+	                	  attr.set(0, multipoint);
+			          multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 features.add(multifeature);
+	                	 break;
+	                 case "Polygon":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.getWgLon());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+		                
+		                 Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
+		               
+		                  attr.set(0, spolygon);
+				          multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "LineString":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 
+		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
+	                	 attr.set(0, slineString);
+				     multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "Point":
+	                	 coordinates= geometry.getCoordinates();
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 Point point =geometryFactory.createPoint(coords.get(0));
+		                
+	                	 attr.set(0, point);
+					  multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 features.add(multifeature);
+	                	 break;
+	                	
+	                 }
+	                 
+	                 
+	            }
+	            outputSHP(file,features,featureType);
+	        }catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	        finally {
+//	        	store.dispose();
+//	            iterator.close();
+	        }
+	}
+	
+	/**
+	 * bd09 to 84
+	 * @throws IOException
+	 */
+	private void shpBDTo84() throws IOException{
+		 File file = JFileDataStoreChooser.showOpenFile("shp", null);
+	        if (file == null) {
+	            return;
+	        }
+
+	        FileDataStore store = FileDataStoreFinder.getDataStore(file);
+	        SimpleFeatureSource featureSource = store.getFeatureSource();
+	        SimpleFeatureCollection collection = featureSource.getFeatures();
+	        SimpleFeatureIterator iterator = collection.features();//所有要素
+	        
+          List<SimpleFeature> features = new ArrayList<SimpleFeature>();
+          SimpleFeatureType featureType =null;
+	        try {
+	            while( iterator.hasNext()  ){
+	                 SimpleFeature feature = iterator.next();
+	                 Geometry geometry =  (Geometry) feature.getDefaultGeometry();
+	                 featureType = feature.getFeatureType();//feature类型
+	                 SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureType);
+	                 Coordinate[] coordinates =  null;
+	                 List<Coordinate> coords = new ArrayList<Coordinate>();
+	                 String geomType = geometry.getGeometryType();
+	                 GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+	                 List<Object> attr=feature.getAttributes();
+	                 SimpleFeature multifeature=null;
+	                 System.out.println(geomType);
+	                 
+	                 switch(geomType){
+	                 case "MultiPolygon":
+	                	 int geometryNum = geometry.getNumGeometries();
+	                	 List<Polygon> polygons = new ArrayList<Polygon>(); 
+	                	 for(int i=0;i<geometryNum;i++){//polygon个数
+	                		 Polygon po= (Polygon) geometry.getGeometryN(i); 
+	                		 int numInteriorRing = po.getNumInteriorRing();
+	                		 LineString  exteriorRing = po.getExteriorRing();
+	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
+	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.bd09_To_Gps84(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newExteriorcoordinates.add(cd);
+			                 }
+	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
+	                		 List<LinearRing> newInteriorRings = new ArrayList<LinearRing>();
+	                		 for(int j=0;j<numInteriorRing;j++){//内圈
+	                			 LineString interiorRing = po.getInteriorRingN(j);
+	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
+	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
+	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
+				                	 Gps gps = PositionUtil.bd09_To_Gps84(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 
+				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 newInteriorcoordinates.add(cd);
+				                 }
+	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
+	                			 LinearRing newInteriorRing = geometryFactory.createLinearRing(tem);
+	                			 newInteriorRings.add(newInteriorRing);
+	                		 }
+	                		 LinearRing[] ls =  newInteriorRings.toArray(new LinearRing[newInteriorRings.size()]);
+	                		 Polygon polygon =geometryFactory.createPolygon(newExteriorRing, ls);
+	                		 polygons.add(polygon);
+	                	 }
+	                	 
+		                
+		                 Polygon[] polygons2 = polygons.toArray(new Polygon[polygons.size()]);
+		                 MultiPolygon	multipolygon = geometryFactory.createMultiPolygon(polygons2);
+//		                 featureBuilder.add(multipolygon);
+		                 attr.set(0, multipolygon);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiLineString":
+	                	 
+	                	 int lineStringNum = geometry.getNumGeometries();
+	                	 List<LineString> lineStrings = new ArrayList<LineString>(); 
+	                	 
+	                	 for(int i=0;i<lineStringNum;i++){//多个LineString
+	                		 LineString lineString = (LineString) geometry.getGeometryN(i);
+	                		 Coordinate[] lineStringcoordinates = lineString.getCoordinates();
+	   
+	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
+	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
+			                	 Gps gps = PositionUtil.bd09_To_Gps84(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 
+			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 newLineStringcoordinates.add(cd);
+			                 }
+	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
+	                		 LineString newLineString = geometryFactory.createLineString(newls); 
+	                		 lineStrings.add(newLineString);
+	                	 }
+	                	 
+	                	 LineString[] lineStrings2 = lineStrings.toArray(new LineString[lineStrings.size()]);
+	                	 
+	                	
+		                 MultiLineString	multiline = geometryFactory.createMultiLineString(lineStrings2);
+		                 attr.set(0, multiline);
+		                 multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "MultiPoint":
+	                	 coordinates= geometry.getCoordinates();
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 System.out.println(coords);
+	                	 MultiPoint multipoint =geometryFactory.createMultiPoint(coords.toArray(new Coordinate[coords.size()]));
+		                
+	                	  attr.set(0, multipoint);
+			          multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 features.add(multifeature);
+	                	 break;
+	                 case "Polygon":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.getWgLon());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+		                
+		                 Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
+		               
+		                  attr.set(0, spolygon);
+				          multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "LineString":
+	                	 coordinates= geometry.getCoordinates();
+	                	 
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 
+		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
+	                	 attr.set(0, slineString);
+				     multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 
+		                 features.add(multifeature);
+	                	 break;
+	                 case "Point":
+	                	 coordinates= geometry.getCoordinates();
+	                	 for(int i =0 ;i<coordinates.length ;i++){
+	                		 System.out.println(coordinates[i].toString());
+		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 System.out.println(gps.toString());
+		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 coords.add(cd);
+		                 }
+	                	 Point point =geometryFactory.createPoint(coords.get(0));
+		                
+	                	 attr.set(0, point);
+					  multifeature = featureBuilder.buildFeature(null, attr.toArray());
+		                 features.add(multifeature);
+	                	 break;
+	                	
+	                 }
+	                 
+	                 
+	            }
+	            outputSHP(file,features,featureType);
+	        }catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	        finally {
+//	        	store.dispose();
+//	            iterator.close();
+	        }
+	}
+	
 	
 	 private static File getNewShapeFile(File file) {
 	        String path = file.getAbsolutePath();
