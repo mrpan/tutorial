@@ -140,7 +140,7 @@ public class Spliter
                 		 LineString line = lineSegments.get(j);
 //                		 featureBuilder.add(line);
                 		 attr.set(0, line);
-                		 attr.add(segmentCount);
+                		 attr.set(attr.size(), segmentCount);
                 		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
 		              features.add(lineFeature);
                 	 }
