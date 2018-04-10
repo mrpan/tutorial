@@ -89,6 +89,7 @@ public class ShpTool extends JFrame {
 		JButton shppy = new JButton("shp文件wgs84-gcj02");
 		JButton gcjto84 = new JButton("shp文件gcj02-wgs84");
 		JButton bdTo84 = new JButton("shp文件bd09-wgs84");
+		JButton splitButton = new JButton("分段");
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
@@ -102,6 +103,8 @@ public class ShpTool extends JFrame {
 		
 		bdTo84.setLocation(190,60);
 		bdTo84.setSize(180, 30);
+		splitButton.setLocation(10,120);
+		splitButton.setSize(180, 30);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -151,13 +154,25 @@ public class ShpTool extends JFrame {
 		bdTo84.addActionListener(new ActionListener(){
 		       public void actionPerformed(ActionEvent e) {
 		    	   try {
-//		    		   shpGcjTo84();
+		    		   shpBDTo84();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 		}});
 		contailner.add(bdTo84);
+		
+		splitButton.addActionListener(new ActionListener(){
+		       public void actionPerformed(ActionEvent e) {
+		    	   try {
+		    		   Spliter spliter =new Spliter();
+		    		   spliter.start();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		}});
+		contailner.add(splitButton);
 	}
 	
 	private void lookShp() throws Exception{
