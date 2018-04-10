@@ -138,9 +138,9 @@ public class Spliter
 	            	 for(int j=0;j<lineSegments.size();j++){
 	            		 segmentCount++;
                 		 LineString line = lineSegments.get(j);
-//                		 featureBuilder.add(line);
                 		 attr.set(0, line);
                 		 attr.add(segmentCount);
+                		 
                 		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
 		              features.add(lineFeature);
                 	 }
