@@ -160,6 +160,7 @@ public class ShpTool extends JFrame {
 					e1.printStackTrace();
 				}
 		}});
+		
 		contailner.add(bdTo84);
 		
 		splitButton.addActionListener(new ActionListener(){
