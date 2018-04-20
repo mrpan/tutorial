@@ -118,13 +118,13 @@ public class Spliter
                 	 for(int i=0;i<lineStringNum;i++){//多个LineString
                 		 LineString lineString = (LineString) geometry.getGeometryN(i);
 //                		 lineStrings.add(lineString);
-                		 lineStrings = createSegments(lineString,100);
+                		 lineStrings = createSegments(lineString,500);
 //                		 lineStrings.addAll(lineSegments);
                 		 for(int j=0;j<lineStrings.size();j++){
                 			 segmentCount++;
                     		 LineString line = lineStrings.get(j);
                     		 attr.set(0, line);
-                    		 attr.add(segmentCount);
+                    		 attr.set(attr.size(),segmentCount);
                     		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
     		                 features.add(lineFeature);
                     	 }
@@ -137,7 +137,7 @@ public class Spliter
 	            		 segmentCount++;
                 		 LineString line = lineSegments.get(j);
                 		 attr.set(0, line);
-                		 attr.add(segmentCount);
+                		 attr.set(attr.size(),segmentCount);
                 		 
                 		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
 		              features.add(lineFeature);
