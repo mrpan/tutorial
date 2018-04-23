@@ -94,6 +94,7 @@ public class ShpTool extends JFrame {
 		JButton splitButton = new JButton("分段");
 		JLabel lengthLabel = new JLabel("长度：");
 		final JTextField lengthText = new JTextField(20);
+		lengthText.setText("100");//增加默认值
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
@@ -179,7 +180,6 @@ public class ShpTool extends JFrame {
 		    			   JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
 		    			   return;
 		    		   }
-		    		   System.out.println(length);
 		    		   Spliter spliter =new Spliter();
 		    		   spliter.start(length);
 				} catch (Exception e1) {
