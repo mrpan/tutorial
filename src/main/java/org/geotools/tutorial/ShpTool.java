@@ -179,12 +179,12 @@ public class ShpTool extends JFrame {
 		    			   JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
 		    			   return;
 		    		   }
+		    		   System.out.println(length);
 		    		   Spliter spliter =new Spliter();
 		    		   spliter.start(length);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
 				}
 		}});
 		contailner.add(splitButton);

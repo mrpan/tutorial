@@ -87,9 +87,10 @@ public class Spliter
 	    
 	    readFeatures(featureIterator,file,length);
 	}
-	public void readFeatures(FeatureIterator featureIterator,File file,Integer length) throws Exception{
-		SimpleFeatureType featureType=null;
+	public void readFeatures(FeatureIterator featureIterator,File file,Integer lineLength) throws Exception{
+		
 		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
+		SimpleFeatureType featureType=null;
 		try{
 	        while (featureIterator.hasNext()) {
 	        		int segmentCount =0;
@@ -100,15 +101,16 @@ public class Spliter
 //	            System.out.println(feature.	getDefaultGeometry());
 	            Geometry geometry =  (Geometry) feature.getDefaultGeometry();
 	            String geomType = geometry.getGeometryType();
-	            System.out.println(geomType);
 	            featureType = feature.getFeatureType();//feature类型
 	            SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
 	            builder.init(featureType);
 	            builder.add("sectionId", Integer.class);
 	            SimpleFeatureType newstf=builder.buildFeatureType();
+	            featureType=newstf;//重置featuretype
                 SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(newstf);
                 List<Object> attr=feature.getAttributes();//属性名称
-//                System.out.println(attr);
+                attr.add(0);//第一个feature默认值
+                System.out.println(attr);
 	            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 	            SimpleFeature multifeature=null;
 	            switch(geomType){
@@ -117,14 +119,12 @@ public class Spliter
 	            	 List<LineString> lineStrings = new ArrayList<LineString>(); 
                 	 for(int i=0;i<lineStringNum;i++){//多个LineString
                 		 LineString lineString = (LineString) geometry.getGeometryN(i);
-//                		 lineStrings.add(lineString);
-                		 lineStrings = createSegments(lineString,length);
-//                		 lineStrings.addAll(lineSegments);
+                		 lineStrings = createSegments(lineString,lineLength);
                 		 for(int j=0;j<lineStrings.size();j++){
                 			 segmentCount++;
                     		 LineString line = lineStrings.get(j);
                     		 attr.set(0, line);
-                    		 attr.set(attr.size(),segmentCount);
+                    		 attr.set(attr.size()-1,segmentCount);
                     		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
     		                 features.add(lineFeature);
                     	 }
@@ -132,12 +132,12 @@ public class Spliter
 	                 break;
 	            case "LineString":
 	            	LineString lineString =(LineString) geometry;
-	            	List<LineString> lineSegments = createSegments(lineString,length);
+	            	List<LineString> lineSegments = createSegments(lineString,lineLength);
 	            	 for(int j=0;j<lineSegments.size();j++){
 	            		 segmentCount++;
                 		 LineString line = lineSegments.get(j);
                 		 attr.set(0, line);
-                		 attr.set(attr.size(),segmentCount);
+                		 attr.set(attr.size()-1,segmentCount);
                 		 
                 		 SimpleFeature lineFeature = featureBuilder.buildFeature(null,attr.toArray());
 		              features.add(lineFeature);
