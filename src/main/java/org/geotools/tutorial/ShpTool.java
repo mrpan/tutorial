@@ -14,7 +14,9 @@ import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FileDataStore;
@@ -90,6 +92,8 @@ public class ShpTool extends JFrame {
 		JButton gcjto84 = new JButton("shp文件gcj02-wgs84");
 		JButton bdTo84 = new JButton("shp文件bd09-wgs84");
 		JButton splitButton = new JButton("分段");
+		JLabel lengthLabel = new JLabel("长度：");
+		final JTextField lengthText = new JTextField(20);
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
@@ -105,6 +109,10 @@ public class ShpTool extends JFrame {
 		bdTo84.setSize(180, 30);
 		splitButton.setLocation(10,120);
 		splitButton.setSize(180, 30);
+		
+		lengthLabel.setLocation(200, 120);
+		lengthLabel.setSize(80,30);
+		lengthText.setBounds(240, 120, 80, 30);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -166,14 +174,22 @@ public class ShpTool extends JFrame {
 		splitButton.addActionListener(new ActionListener(){
 		       public void actionPerformed(ActionEvent e) {
 		    	   try {
+		    		   Integer length=Integer.parseInt(lengthText.getText());
+		    		   if(length<=0) {
+		    			   JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
+		    			   return;
+		    		   }
 		    		   Spliter spliter =new Spliter();
-		    		   spliter.start();
+		    		   spliter.start(length);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
+					JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
 				}
 		}});
 		contailner.add(splitButton);
+		contailner.add(lengthLabel);
+		contailner.add(lengthText);
 	}
 	
 	private void lookShp() throws Exception{

@@ -59,18 +59,18 @@ public class Spliter
 {
 	
 	
-	public void  start() throws Exception{
+	public void  start(Integer length) throws Exception{
 		File file = JFileDataStoreChooser.showOpenFile("shp", null);
         if (file == null) {
             return;
         }
 //		File file = new File("shp/test_line.shp");
-		readShapefile(file);
+		readShapefile(file,length);
         
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public void readShapefile(File file) throws Exception{
+	public void readShapefile(File file,Integer length) throws Exception{
 		
 	    Map<String, Object> map = new HashMap<String, Object>();
 	    map.put("url", file.toURI().toURL());
@@ -85,9 +85,9 @@ public class Spliter
 	    FeatureCollection<SimpleFeatureType, SimpleFeature> collection = source.getFeatures();
 	    FeatureIterator<SimpleFeature>  featureIterator = collection.features();
 	    
-	    readFeatures(featureIterator,file);
+	    readFeatures(featureIterator,file,length);
 	}
-	public void readFeatures(FeatureIterator featureIterator,File file) throws Exception{
+	public void readFeatures(FeatureIterator featureIterator,File file,Integer length) throws Exception{
 		SimpleFeatureType featureType=null;
 		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
 		try{
@@ -118,7 +118,7 @@ public class Spliter
                 	 for(int i=0;i<lineStringNum;i++){//多个LineString
                 		 LineString lineString = (LineString) geometry.getGeometryN(i);
 //                		 lineStrings.add(lineString);
-                		 lineStrings = createSegments(lineString,500);
+                		 lineStrings = createSegments(lineString,length);
 //                		 lineStrings.addAll(lineSegments);
                 		 for(int j=0;j<lineStrings.size();j++){
                 			 segmentCount++;
@@ -132,7 +132,7 @@ public class Spliter
 	                 break;
 	            case "LineString":
 	            	LineString lineString =(LineString) geometry;
-	            	List<LineString> lineSegments = createSegments(lineString,100);
+	            	List<LineString> lineSegments = createSegments(lineString,length);
 	            	 for(int j=0;j<lineSegments.size();j++){
 	            		 segmentCount++;
                 		 LineString line = lineSegments.get(j);
@@ -289,7 +289,7 @@ public class Spliter
     public static void main( String[] args ) throws Exception
     {
     	Spliter app = new Spliter();
-    	app.start();
+    	app.start(100);
         System.out.println( "Hello World!" );
     }
 }
