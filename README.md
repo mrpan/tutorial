@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/mrpan/tutorial.svg?branch=master)](https://travis-ci.org/mrpan/tutorial)
 # tutorial
 geotools tutorial
 
