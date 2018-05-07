@@ -242,7 +242,6 @@ public class ShpTool extends JFrame {
 	                 List<Object> attr=feature.getAttributes();
 	                 SimpleFeature multifeature=null;
 	                 System.out.println(geomType);
-	                 
 	                 switch(geomType){
 	                 case "MultiPolygon":
 	                	 int geometryNum = geometry.getNumGeometries();
@@ -423,8 +422,7 @@ public class ShpTool extends JFrame {
 	                 GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 	                 List<Object> attr=feature.getAttributes();
 	                 SimpleFeature multifeature=null;
-	                 System.out.println(geomType);
-	                 
+	                 System.out.println(geomType);       
 	                 switch(geomType){
 	                 case "MultiPolygon":
 	                	 int geometryNum = geometry.getNumGeometries();
