@@ -371,12 +371,17 @@ public class ShpTool extends JFrame {
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
 		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 if(gps==null) {
+		                		 continue;
+		                	 }
 		                	 System.out.println(gps.toString());
 		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
 		                	 coords.add(cd);
 		                 }
+	                	 if(coords.size()==0) {
+	                		 continue;
+	                	 }
 	                	 Point point =geometryFactory.createPoint(coords.get(0));
-		                
 	                	 attr.set(0, point);
 					  multifeature = featureBuilder.buildFeature(null, attr.toArray());
 		                 features.add(multifeature);
