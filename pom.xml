@@ -45,7 +45,7 @@
     <artifactId>ojdbc6</artifactId>
     <version>11.2.0.3</version>
 </dependency>
-	</dependencies>
+</dependencies>
 	<repositories>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
@@ -67,7 +67,7 @@
 		</repository>
 		
 		<repository>
-			<id>maven2-repository.dev.java.net</id>
+			<id>maven2-repository</id>
 			<name>Java.net repository</name>
 			<url>http://www.datanucleus.org/downloads/maven2</url>
 		</repository>
