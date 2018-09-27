@@ -15,7 +15,7 @@ public class Tranform {
 		// TODO Auto-generated method stub
 		Tranform t =new Tranform();
 		double[] point ={103.6,30.6};
-		Coordinate c = t.transformCoordinate("EPSG:4326", "EPSG:4496", point);
+		Coordinate c = t.transformCoordinate("EPSG:4326", "EPSG:4490", point);
 		System.out.println(c);
 	}
 	public Coordinate transformCoordinate(String fromProj,String toProj,double[] point) throws Exception {

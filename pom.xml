@@ -39,6 +39,12 @@
 			<artifactId>gt-epsg-hsql</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
+		
+		<dependency>
+    <groupId>oracle</groupId>
+    <artifactId>ojdbc6</artifactId>
+    <version>11.2.0.3</version>
+</dependency>
 	</dependencies>
 	<repositories>
 		<repository>
@@ -58,6 +64,12 @@
 			<id>boundless</id>
 			<name>Boundless Maven Repository</name>
 			<url>http://repo.boundlessgeo.com/main</url>
+		</repository>
+		
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net repository</name>
+			<url>http://www.datanucleus.org/downloads/maven2</url>
 		</repository>
 	</repositories>
 </project>
