@@ -40,11 +40,6 @@
 			<version>${geotools.version}</version>
 		</dependency>
 		
-		<dependency>
-    <groupId>oracle</groupId>
-    <artifactId>ojdbc6</artifactId>
-    <version>11.2.0.3</version>
-</dependency>
 </dependencies>
 	<repositories>
 		<repository>
@@ -65,11 +60,24 @@
 			<name>Boundless Maven Repository</name>
 			<url>http://repo.boundlessgeo.com/main</url>
 		</repository>
-		
-		<repository>
-			<id>maven2-repository</id>
-			<name>Java.net repository</name>
-			<url>http://www.datanucleus.org/downloads/maven2</url>
-		</repository>
 	</repositories>
+	<build>
+  <plugins>
+  	<plugin>
+  		<artifactId>maven-assembly-plugin</artifactId>
+  		<version>2.6</version>
+  		<executions>
+  			<execution>
+  				<phase>package</phase>
+  				<goals><goal>single</goal></goals>
+  			</execution>
+  		</executions>
+  		<configuration>
+  			<descriptorRefs>
+  				<descriptorRef>jar-with-dependencies</descriptorRef>
+  			</descriptorRefs>
+  		</configuration>
+  	</plugin>
+  </plugins>
+  </build>
 </project>
