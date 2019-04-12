@@ -1,43 +1,31 @@
 package org.geotools.tutorial;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.PrecisionModel;
-import org.geotools.data.DataAccess;
-import org.geotools.data.DataAccessFinder;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.FeatureLockFactory;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.FileDataStoreFactorySpi;
-import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.factory.CommonFactoryFinder;
+import org.geotools.data.*;
+import org.geotools.factory.*;
 import org.geotools.feature.FeatureCollections;
-import org.geotools.filter.FunctionFactory;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.ReferencingFactoryFinder;
-import org.geotools.referencing.factory.ReferencingFactoryContainer;
 import org.geotools.styling.StyleFactory;
-import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureFactory;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
 import org.opengis.feature.type.FeatureTypeFactory;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.expression.Function;
+import org.opengis.referencing.crs.CRSAuthorityFactory;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.GeographicCRS;
+import org.opengis.referencing.cs.CSAuthorityFactory;
 import org.opengis.referencing.cs.CSFactory;
 import org.opengis.referencing.datum.DatumAuthorityFactory;
 import org.opengis.referencing.datum.DatumFactory;
+import org.opengis.referencing.operation.*;
+
+import java.io.File;
+import java.util.*;
 
 public class GeotoolsTest {
 
@@ -91,6 +79,32 @@ public class GeotoolsTest {
 
 		DatumAuthorityFactory datumAuthorityFactory=ReferencingFactoryFinder.getDatumAuthorityFactory("EPSG",null);
 		System.out.println(datumAuthorityFactory.getAuthority());
+
+		CSAuthorityFactory csAuthorityFactory =ReferencingFactoryFinder.getCSAuthorityFactory("EPSG", null);
+
+		CRSAuthorityFactory crsAuthorityFactory =ReferencingFactoryFinder.getCRSAuthorityFactory("EPSG",null);
+		CoordinateReferenceSystem coordinateReferenceSystem=crsAuthorityFactory.createCoordinateReferenceSystem("EPSG:3857");
+//		System.out.println(coordinateReferenceSystem);
+		GeographicCRS geographicCRS=crsAuthorityFactory.createGeographicCRS("EPSG:4326");
+//		System.out.println(geographicCRS);
+		MathTransformFactory mathTransformFactory= ReferencingFactoryFinder.getMathTransformFactory(null);
+
+		CoordinateOperationFactory coordinateOperationFactory=ReferencingFactoryFinder.getCoordinateOperationFactory(null);
+		CoordinateOperation coordinateOperation =coordinateOperationFactory.createOperation(coordinateReferenceSystem,geographicCRS);
+		System.out.println(coordinateOperation);
+		MathTransform mathTransform = coordinateOperation.getMathTransform();
+		System.out.println(mathTransform);
+
+		CoordinateOperationAuthorityFactory coordinateOperationAuthorityFactory= ReferencingFactoryFinder.getCoordinateOperationAuthorityFactory("EPSG",null);
+
+		Hints hints = GeoTools.getDefaultHints();
+		FactoryRegistry registry = new FactoryCreator(Arrays.asList(new Class[] {FilterFactory.class,}));
+		Iterator i = registry.getServiceProviders( FilterFactory.class, null, hints );
+		while( i.hasNext() ){
+			FilterFactory factory = (FilterFactory) i.next();
+			System.out.println(factory);
+		}
+
 	}
 
 }
