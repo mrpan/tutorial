@@ -104,6 +104,7 @@ public class GeotoolsTest {
 			FilterFactory factory = (FilterFactory) i.next();
 			System.out.println(factory);
 		}
+		System.out.println(GeoTools.getBuildProperties());
 
 	}
 
