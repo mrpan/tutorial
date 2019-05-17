@@ -140,7 +140,7 @@ public class PositionUtil {
     public static void main(String[] args) {
 
         // 北斗芯片获取的经纬度为WGS84地理坐标 31.426896,119.496145
-        Gps gps = new Gps(30.94067955,100.30830383 );
+        Gps gps = new Gps(30.67836358,100.30830383);
 //        System.out.println("gps :" + gps);
         Gps gcj = gps84_To_Gcj02(gps.getWgLat(), gps.getWgLon());
         System.out.println("gcj :" + gcj);

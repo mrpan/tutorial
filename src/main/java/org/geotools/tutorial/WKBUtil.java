@@ -16,7 +16,7 @@ public class WKBUtil {
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 //		Coordinate coord = new Coordinate(4, 5);  
-		Coordinate coord = new Coordinate(103.684, 30.501);  
+		Coordinate coord = new Coordinate(1, 2);  
 	    Point point = geometryFactory.createPoint( coord ); 
 //	    point.normalize();
 	    point.setSRID(4326);
