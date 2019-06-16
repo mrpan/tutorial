@@ -93,8 +93,15 @@ public class ShpTool extends JFrame {
 		JButton bdTo84 = new JButton("shp文件bd09-wgs84");
 		JButton splitButton = new JButton("分段");
 		JLabel lengthLabel = new JLabel("长度：");
+		
+		JButton bufferButton = new JButton("buffer");
+		JLabel bufferLength = new JLabel("长度：");
+		
 		final JTextField lengthText = new JTextField(20);
 		lengthText.setText("100");//增加默认值
+		final JTextField bufferLengthText = new JTextField(20);
+		bufferLengthText.setText("100");//增加默认值
+		
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
 		button.setBounds(10, 10, 110, 23);
@@ -111,9 +118,16 @@ public class ShpTool extends JFrame {
 		splitButton.setLocation(10,120);
 		splitButton.setSize(180, 30);
 		
+		bufferButton.setLocation(10,180);
+		bufferButton.setSize(180, 30);
+		
 		lengthLabel.setLocation(200, 120);
 		lengthLabel.setSize(80,30);
 		lengthText.setBounds(240, 120, 80, 30);
+		
+		bufferLength.setLocation(200, 180);
+		bufferLength.setSize(80,30);
+		bufferLengthText.setBounds(240, 180, 80, 30);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -190,6 +204,27 @@ public class ShpTool extends JFrame {
 		contailner.add(splitButton);
 		contailner.add(lengthLabel);
 		contailner.add(lengthText);
+		
+		bufferButton.addActionListener(new ActionListener(){
+		       public void actionPerformed(ActionEvent e) {
+		    	   try {
+		    		   double length=Double.parseDouble(bufferLengthText.getText());
+		    		   if(length<=0) {
+		    			   JOptionPane.showMessageDialog(null,"长度填写错误", "分段长度", JOptionPane.ERROR_MESSAGE);
+		    			   return;
+		    		   }
+		    		   Buffer buffer =new Buffer();
+		    		   buffer.start(length);
+		    		   
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		}});
+		contailner.add(bufferButton);
+		contailner.add(bufferLength);
+		contailner.add(bufferLengthText);
+		
 	}
 	
 	private void lookShp() throws Exception{
@@ -853,4 +888,6 @@ public class ShpTool extends JFrame {
          System.exit(1);
      }
  }
+ 
+
 }
