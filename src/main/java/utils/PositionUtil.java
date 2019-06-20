@@ -11,7 +11,14 @@ public class PositionUtil {
     private static double pi = 3.1415926535897932384626;
     private static double a = 6378245.0;
     private static double ee = 0.00669342162296594323;
-
+    
+    public static final int W2G=1;//wgs84 to gcj02
+    
+    public static final int G2W=2;//gcj02 to wgs84
+    
+    public static final int W2B=3;//wgs84 to bd09
+    
+    public static final int B2W=4;//BD09 to wgs84
     /**
      * wgs84坐标系转 gcj02
      * 
@@ -91,6 +98,17 @@ public class PositionUtil {
         Location map84 = PositionUtil.gcj02_To_wgs84( gcj02.getLon(),gcj02.getLat());
         return map84;
 
+    }
+    /**
+     * wgs84转bd09坐标系
+     * @param lon
+     * @param lat
+     * @return Location
+     */
+    public static Location wgs84_To_bd09(double lon,double lat) {
+    	Location gcj02=PositionUtil.wgs84_To_gcj02(lon, lat);
+    	Location bd09 =PositionUtil.gcj02_To_bd09(gcj02.getLon(), gcj02.getLat());
+    	return bd09;
     }
     /**
      **判断是否在中国范围内

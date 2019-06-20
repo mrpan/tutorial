@@ -31,7 +31,7 @@ public class WKBUtil {
 	}
 	
 	public static String toWKBString(Geometry geom) {
-		 geom.setSRID(4326);
+//		 geom.setSRID(4326);
 		 WKBWriter wkbWriter = new WKBWriter(2,ByteOrderValues.LITTLE_ENDIAN,true); 
 		 String wkb = WKBWriter.toHex(wkbWriter.write(geom)); 
 		 return wkb;
