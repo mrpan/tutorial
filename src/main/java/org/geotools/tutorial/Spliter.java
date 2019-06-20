@@ -48,8 +48,6 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
-import utils.Gps;
-import utils.PositionUtil;
 
 /**
  * Hello world!
