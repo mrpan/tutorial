@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -263,6 +264,9 @@ public class Utils {
 			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
 		}else if(transformType==PositionUtil.B2W) {
 			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
+		}else if(transformType==PositionUtil.NoGB) {
+			gps.setLon(lon);
+			gps.setLat(lat);
 		}
 		return gps;
 	}
@@ -270,5 +274,42 @@ public class Utils {
 		Geometry transGeometry=geometryTransformFunc(geometry, transformType);
 		return WKBUtil.toWKBString(transGeometry);
 	}
+	
+	public static void appendFile( String content,File file) {  
+//		String fileName = "E:/grid/20/grid.txt";
+		String fileName = file.getPath();
+		
+        try {
+            //打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件  
+            FileWriter writer = new FileWriter(fileName, true);  
+            writer.write(content);  
+            writer.close();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        } 
+    } 
+	public static File getNewCSVFile(File file) {
+        String path = file.getAbsolutePath();
+        String newPath = path.substring(0, path.length() - 4) + ".csv";
+
+        JFileDataStoreChooser chooser = new JFileDataStoreChooser("csv");
+        chooser.setDialogTitle("Save CSV File");
+        chooser.setSelectedFile(new File(newPath));
+
+        int returnVal = chooser.showSaveDialog(null);
+
+        if (returnVal != JFileDataStoreChooser.APPROVE_OPTION) {
+            // the user cancelled the dialog
+            System.exit(0);
+        }
+
+        File newFile = chooser.getSelectedFile();
+        if (newFile.equals(file)) {
+            System.out.println("Error: cannot replace " + file);
+            System.exit(0);
+        }
+
+        return newFile;
+    }
 
 }

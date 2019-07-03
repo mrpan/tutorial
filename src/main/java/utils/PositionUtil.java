@@ -19,6 +19,7 @@ public class PositionUtil {
     public static final int W2B=3;//wgs84 to bd09
     
     public static final int B2W=4;//BD09 to wgs84
+    public static final int NoGB=0; //无偏移
     /**
      * wgs84坐标系转 gcj02
      * 
