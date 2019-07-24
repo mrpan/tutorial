@@ -36,6 +36,7 @@ import org.opengis.referencing.operation.TransformException;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.operation.buffer.BufferOp;
 
 import utils.Utils;
 
@@ -148,7 +149,7 @@ public class Buffer {
 
 	private Geometry buffer(Geometry geom, double distance) {
 
-		Geometry buffer = geom.buffer(distance);
+		Geometry buffer = geom.buffer(distance,5,BufferOp.CAP_FLAT);
 
 		return buffer;
 

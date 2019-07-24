@@ -1,30 +1,34 @@
 package utils;
 
 /**
- * 各地图API坐标系统比较与转换;
- * WGS84坐标系：即地球坐标系，国际上通用的坐标系。设备一般包含GPS芯片或者北斗芯片获取的经纬度为WGS84地理坐标系,
- * 谷歌地图采用的是WGS84地理坐标系（中国范围除外）;
- * GCJ02坐标系：即火星坐标系，是由中国国家测绘局制订的地理信息系统的坐标系统。由WGS84坐标系经加密后的坐标系。
- * 谷歌中国地图和搜搜中国地图采用的是GCJ02地理坐标系; BD09坐标系：即百度坐标系，GCJ02坐标系经加密后的坐标系;
- * 搜狗坐标系、图吧坐标系等，估计也是在GCJ02基础上加密而成的。
+ * wgs84坐标系：即地球坐标系，国际上通用的坐标系。
+ * gcj02坐标系：即火星坐标系，是由中国国家测绘局制订的地理信息系统的坐标系统。
  */
 public class PositionUtil {
     
-    public static final String BAIDU_LBS_TYPE = "bd09ll";
+	private static final String BAIDU_LBS_TYPE = "bd09ll";
     
-    public static double pi = 3.1415926535897932384626;
-    public static double a = 6378245.0;
-    public static double ee = 0.00669342162296594323;
-
+    private static double pi = 3.1415926535897932384626;
+    private static double a = 6378245.0;
+    private static double ee = 0.00669342162296594323;
+    
+    public static final int W2G=1;//wgs84 to gcj02
+    
+    public static final int G2W=2;//gcj02 to wgs84
+    
+    public static final int W2B=3;//wgs84 to bd09
+    
+    public static final int B2W=4;//BD09 to wgs84
+    public static final int NoGB=0; //无偏移
     /**
-     * 84 to 火星坐标系 (GCJ-02) World Geodetic System ==> Mars Geodetic System
+     * wgs84坐标系转 gcj02
      * 
-     * @param lat
-     * @param lon
-     * @return
+     * @param lon 经度
+     * @param lat 纬度
+     * @return Location
      */
-    public static Gps gps84_To_Gcj02(double lat, double lon) {
-        if (outOfChina(lat, lon)) {
+    public static Location wgs84_To_gcj02(double lon, double lat) {
+        if (outOfChina(lon,lat)) {
             return null;
         }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
@@ -37,73 +41,98 @@ public class PositionUtil {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
-        return new Gps(mgLat, mgLon);
+        return new Location(mgLon,mgLat);
     }
 
     /**
-     * * 火星坐标系 (GCJ-02) to 84 * * @param lon * @param lat * @return
+     **gcj02 转 wgs84  
+     *  @param lon 经度  
+     *  @param lat 纬度
+     *  @return the result of Location 
      * */
-    public static Gps gcj_To_Gps84(double lat, double lon) {
-        Gps gps = transform(lat, lon);
-        double lontitude = lon * 2 - gps.getWgLon();
-        double latitude = lat * 2 - gps.getWgLat();
-        return new Gps(latitude, lontitude);
+    public static Location gcj02_To_wgs84(double lon, double lat) {
+        Location gps = transform(lon,lat);
+        double lontitude = lon * 2 - gps.getLon();
+        double latitude = lat * 2 - gps.getLat();
+        return new Location(lontitude,latitude);
     }
 
     /**
-     * 火星坐标系 (GCJ-02) 与百度坐标系 (BD-09) 的转换算法 将 GCJ-02 坐标转换成 BD-09 坐标
-     * 
-     * @param gg_lat
-     * @param gg_lon
+     * gcj02转bd09坐标系
+     * @param gg_lon 经度
+     * @param gg_lat 纬度
+     * @return Location
      */
-    public static Gps gcj02_To_Bd09(double gg_lat, double gg_lon) {
+    public static Location gcj02_To_bd09(double gg_lon, double gg_lat) {
         double x = gg_lon, y = gg_lat;
         double z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * pi);
         double theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * pi);
         double bd_lon = z * Math.cos(theta) + 0.0065;
         double bd_lat = z * Math.sin(theta) + 0.006;
-        return new Gps(bd_lat, bd_lon);
+        return new Location(bd_lon,bd_lat);
     }
 
     /**
-     * * 火星坐标系 (GCJ-02) 与百度坐标系 (BD-09) 的转换算法 * * 将 BD-09 坐标转换成GCJ-02 坐标 * * @param
-     * bd_lat * @param bd_lon * @return
+     * bd09转gcj02坐标系
+     * @param bd_lon 经度
+     * @param bd_lat 纬度
+     * @return Location
      */
-    public static Gps bd09_To_Gcj02(double bd_lat, double bd_lon) {
+    public static Location bd09_To_gcj02(double bd_lon, double bd_lat) {
         double x = bd_lon - 0.0065, y = bd_lat - 0.006;
         double z = Math.sqrt(x * x + y * y) - 0.00002 * Math.sin(y * pi);
         double theta = Math.atan2(y, x) - 0.000003 * Math.cos(x * pi);
         double gg_lon = z * Math.cos(theta);
         double gg_lat = z * Math.sin(theta);
-        return new Gps(gg_lat, gg_lon);
+        return new Location(gg_lon,gg_lat);
     }
 
     /**
-     * (BD-09)-->84
-     * @param bd_lat
-     * @param bd_lon
-     * @return
+     * bd09转wgs84坐标系
+     * @param bd_lon 经度
+     * @param bd_lat 纬度
+     * @return Location
      */
-    public static Gps bd09_To_Gps84(double bd_lat, double bd_lon) {
+    public static Location bd09_To_wgs84(double bd_lon, double bd_lat) {
 
-        Gps gcj02 = PositionUtil.bd09_To_Gcj02(bd_lat, bd_lon);
-        Gps map84 = PositionUtil.gcj_To_Gps84(gcj02.getWgLat(),
-                gcj02.getWgLon());
+        Location gcj02 = PositionUtil.bd09_To_gcj02(bd_lon,bd_lat);
+        Location map84 = PositionUtil.gcj02_To_wgs84( gcj02.getLon(),gcj02.getLat());
         return map84;
 
     }
-
-    public static boolean outOfChina(double lat, double lon) {
+    /**
+     * wgs84转bd09坐标系
+     * @param lon
+     * @param lat
+     * @return Location
+     */
+    public static Location wgs84_To_bd09(double lon,double lat) {
+    	Location gcj02=PositionUtil.wgs84_To_gcj02(lon, lat);
+    	Location bd09 =PositionUtil.gcj02_To_bd09(gcj02.getLon(), gcj02.getLat());
+    	return bd09;
+    }
+    /**
+     **判断是否在中国范围内
+     * @param lon 经度
+     * @param lat 纬度
+     * @return boolean 
+     */
+    public static boolean outOfChina(double lon, double lat) {
         if (lon < 72.004 || lon > 137.8347)
             return true;
         if (lat < 0.8293 || lat > 55.8271)
             return true;
         return false;
     }
-
-    public static Gps transform(double lat, double lon) {
-        if (outOfChina(lat, lon)) {
-            return new Gps(lat, lon);
+    /**
+     * 
+     * @param lon lon
+     * @param lat lat
+     * @return Location
+     */
+    private static Location transform(double lon, double lat) {
+        if (outOfChina(lon,lat)) {
+            return new Location(lon,lat);
         }
         double dLat = transformLat(lon - 105.0, lat - 35.0);
         double dLon = transformLon(lon - 105.0, lat - 35.0);
@@ -115,10 +144,15 @@ public class PositionUtil {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
-        return new Gps(mgLat, mgLon);
+        return new Location(mgLon,mgLat);
     }
-
-    public static double transformLat(double x, double y) {
+    /**
+     * 
+     * @param x x
+     * @param y y
+     * @return double result
+     */
+    private static double transformLat(double x, double y) {
         double ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y
                 + 0.2 * Math.sqrt(Math.abs(x));
         ret += (20.0 * Math.sin(6.0 * x * pi) + 20.0 * Math.sin(2.0 * x * pi)) * 2.0 / 3.0;
@@ -126,8 +160,13 @@ public class PositionUtil {
         ret += (160.0 * Math.sin(y / 12.0 * pi) + 320 * Math.sin(y * pi / 30.0)) * 2.0 / 3.0;
         return ret;
     }
-
-    public static double transformLon(double x, double y) {
+    /**
+     * 
+     * @param x x
+     * @param y y
+     * @return double 
+     */
+    private static double transformLon(double x, double y) {
         double ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1
                 * Math.sqrt(Math.abs(x));
         ret += (20.0 * Math.sin(6.0 * x * pi) + 20.0 * Math.sin(2.0 * x * pi)) * 2.0 / 3.0;
@@ -140,17 +179,11 @@ public class PositionUtil {
     public static void main(String[] args) {
 
         // 北斗芯片获取的经纬度为WGS84地理坐标 31.426896,119.496145
-        Gps gps = new Gps(30.67836358,100.30830383);
+        Location gps = new Location(100.30830383,30.94067955);
 //        System.out.println("gps :" + gps);
-        Gps gcj = gps84_To_Gcj02(gps.getWgLat(), gps.getWgLon());
+        Location gcj = wgs84_To_gcj02(gps.getLon(),gps.getLat());
         System.out.println("gcj :" + gcj);
-//        Gps star = gcj_To_Gps84(30.620280414332935,104.1115249897423);
-//        System.out.println("star:" + star);
-//        Gps bd = gcj02_To_Bd09(gcj.getWgLat(), gcj.getWgLon());
-//        System.out.println("bd  :" + bd);
-//        Gps gcj2 = bd09_To_Gcj02(bd.getWgLat(), bd.getWgLon());
-//        System.out.println("gcj :" + gcj2);
-        //Gps wgs84= bd09_To_Gps84(gps.getWgLat(), gps.getWgLon());
-//        System.out.println("wgs84 :" + wgs84);
+        Location wgs84 =gcj02_To_wgs84(100.30960656823223,30.938250541999903);
+        System.out.println("wgs84 :" + wgs84);
     }
 }

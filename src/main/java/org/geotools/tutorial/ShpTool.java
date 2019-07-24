@@ -7,15 +7,19 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import org.geotools.data.DefaultTransaction;
@@ -38,8 +42,10 @@ import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
@@ -54,8 +60,9 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
-import utils.Gps;
+import utils.Location;
 import utils.PositionUtil;
+import utils.Utils;
 
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
@@ -85,7 +92,7 @@ public class ShpTool extends JFrame {
 	 */
 	public ShpTool() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 700, 500);
 		JButton button = new JButton("添加csv文件");
 		JButton buttonshp = new JButton("预览shp文件");
 		JButton shppy = new JButton("shp文件wgs84-gcj02");
@@ -101,6 +108,7 @@ public class ShpTool extends JFrame {
 		lengthText.setText("100");//增加默认值
 		final JTextField bufferLengthText = new JTextField(20);
 		bufferLengthText.setText("100");//增加默认值
+		
 		
 		buttonshp.setLocation(121, 10);
 		buttonshp.setSize(110, 23);
@@ -128,6 +136,22 @@ public class ShpTool extends JFrame {
 		bufferLength.setLocation(200, 180);
 		bufferLength.setSize(80,30);
 		bufferLengthText.setBounds(240, 180, 80, 30);
+		JButton geomButton = new JButton("shp转geom字符串");
+		JRadioButton r1=new JRadioButton("wgs84Togcj02");    
+		JRadioButton r2=new JRadioButton("gcj02Towgs84");
+		JRadioButton r3=new JRadioButton("不偏移"); 
+		geomButton.setLocation(10, 240);
+		geomButton.setSize(180,30);
+		r1.setBounds(190, 240, 150, 30);
+		r2.setBounds(340, 240, 150, 30);
+		r3.setBounds(490, 240, 120, 30);
+		ButtonGroup bg=new ButtonGroup();
+		r1.setActionCommand("1");
+		r2.setActionCommand("2");
+		r3.setActionCommand("0");
+		bg.add(r1);
+		bg.add(r2); 
+		bg.add(r3);
 		Container contailner = getContentPane();
 		final Csv2Shape cts=new Csv2Shape();
 		button.addActionListener(new ActionListener(){
@@ -225,6 +249,74 @@ public class ShpTool extends JFrame {
 		contailner.add(bufferLength);
 		contailner.add(bufferLengthText);
 		
+		geomButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				try {
+					ButtonModel bm =bg.getSelection();
+					System.out.println(bm);
+					if(bm!=null) {
+						String selectedValue=bm.getActionCommand();
+						Integer value=Integer.parseInt(selectedValue);
+						shpToGeom(value);
+					}else {
+						JOptionPane.showMessageDialog(null,"请选择类型", "PLAIN_MESSAGE", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					
+					
+				}catch(Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		contailner.add(geomButton);
+		contailner.add(r1);
+		contailner.add(r2);
+		contailner.add(r3);
+	}
+	
+	private void shpToGeom(int type) throws IOException {
+		 File file = JFileDataStoreChooser.showOpenFile("shp", null);
+	        if (file == null) {
+	            return;
+	        }
+	        FileDataStore store = FileDataStoreFinder.getDataStore(file);
+	        ((ShapefileDataStore) store).setCharset(Charset.forName("utf-8"));
+	        SimpleFeatureSource featureSource = store.getFeatureSource();
+	        SimpleFeatureCollection collection = featureSource.getFeatures();
+	        SimpleFeatureIterator iterator = collection.features();//所有要素
+	        
+         List<SimpleFeature> features = new ArrayList<SimpleFeature>();
+         SimpleFeatureType featureType =null;
+         File newfile=Utils.getNewCSVFile(file);
+         try {
+        	 while(iterator.hasNext()) {
+        		  SimpleFeature feature = iterator.next();
+	              Geometry geometry =  (Geometry) feature.getDefaultGeometry();
+	              String geomstring =Utils.transformGeometryToKWB(type, geometry);
+	              List<Object> attrsList=feature.getAttributes();
+	              String values="";
+	              for(int i=0;i<attrsList.size();i++) {
+	            	  if(i==0) {
+	            		  continue;
+//	            		  values=attrsList.get(i).toString();
+	            	  }else {
+	            		  values+=attrsList.get(i).toString()+",";
+	            	  }
+	              }
+	             
+	              values+=geomstring+"\n";
+	              System.out.println(values);
+	              Utils.appendFile(values, newfile);
+	             
+        	 }
+        	 JOptionPane.showMessageDialog(null,"转换成功", "PLAIN_MESSAGE", JOptionPane.PLAIN_MESSAGE);
+         }catch(Exception e) {
+        	 e.printStackTrace();
+         }
 	}
 	
 	private void lookShp() throws Exception{
@@ -288,9 +380,9 @@ public class ShpTool extends JFrame {
 	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
 	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.gps84_To_Gcj02(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
+			                	 Location gps = PositionUtil.wgs84_To_gcj02(exteriorcoordinates[j].x,exteriorcoordinates[j].y);
 			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newExteriorcoordinates.add(cd);
 			                 }
 	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
@@ -300,9 +392,9 @@ public class ShpTool extends JFrame {
 	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
 	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
 	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
-				                	 Gps gps = PositionUtil.gps84_To_Gcj02(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 Location gps = PositionUtil.wgs84_To_gcj02(interiorcoordinates[n].x,interiorcoordinates[n].y);
 				                	 
-				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 				                	 newInteriorcoordinates.add(cd);
 				                 }
 	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
@@ -334,9 +426,9 @@ public class ShpTool extends JFrame {
 	   
 	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.gps84_To_Gcj02(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 Location gps = PositionUtil.wgs84_To_gcj02(lineStringcoordinates[j].x,lineStringcoordinates[j].y);
 			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newLineStringcoordinates.add(cd);
 			                 }
 	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
@@ -357,9 +449,9 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 Location gps = PositionUtil.wgs84_To_gcj02(coordinates[i].x,coordinates[i].y);
 		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 System.out.println(coords);
@@ -373,9 +465,8 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-		                	 System.out.println(gps.getWgLon());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Location gps = PositionUtil.wgs84_To_gcj02(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 		                
@@ -391,8 +482,8 @@ public class ShpTool extends JFrame {
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Location gps = PositionUtil.wgs84_To_gcj02(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
@@ -405,12 +496,12 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.gps84_To_Gcj02(coordinates[i].y,coordinates[i].x);
+		                	 Location gps = PositionUtil.wgs84_To_gcj02(coordinates[i].x,coordinates[i].y);
 		                	 if(gps==null) {
 		                		 continue;
 		                	 }
 		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 if(coords.size()==0) {
@@ -474,9 +565,9 @@ public class ShpTool extends JFrame {
 	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
 	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.gcj_To_Gps84(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
+			                	 Location gps = PositionUtil.gcj02_To_wgs84(exteriorcoordinates[j].x,exteriorcoordinates[j].y);
 			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newExteriorcoordinates.add(cd);
 			                 }
 	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
@@ -486,9 +577,9 @@ public class ShpTool extends JFrame {
 	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
 	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
 	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
-				                	 Gps gps = PositionUtil.gcj_To_Gps84(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 Location gps = PositionUtil.gcj02_To_wgs84(interiorcoordinates[n].x,interiorcoordinates[n].y);
 				                	 
-				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 				                	 newInteriorcoordinates.add(cd);
 				                 }
 	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
@@ -520,9 +611,9 @@ public class ShpTool extends JFrame {
 	   
 	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.gcj_To_Gps84(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 Location gps = PositionUtil.gcj02_To_wgs84(lineStringcoordinates[j].x,lineStringcoordinates[j].y);
 			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newLineStringcoordinates.add(cd);
 			                 }
 	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
@@ -543,9 +634,9 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 Location gps = PositionUtil.gcj02_To_wgs84(coordinates[i].x,coordinates[i].y);
 		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 System.out.println(coords);
@@ -559,9 +650,8 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
-		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
-		                	 System.out.println(gps.getWgLon());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Location gps = PositionUtil.gcj02_To_wgs84(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 		                
@@ -577,8 +667,8 @@ public class ShpTool extends JFrame {
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 
-		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+	                		 Location gps = PositionUtil.gcj02_To_wgs84(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
@@ -591,9 +681,8 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.gcj_To_Gps84(coordinates[i].y,coordinates[i].x);
-		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+	                		 Location gps = PositionUtil.gcj02_To_wgs84(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 Point point =geometryFactory.createPoint(coords.get(0));
@@ -660,9 +749,9 @@ public class ShpTool extends JFrame {
 	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
 	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.bd09_To_Gps84(exteriorcoordinates[j].y,exteriorcoordinates[j].x);
-			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Location gps = PositionUtil.bd09_To_wgs84(exteriorcoordinates[j].x,exteriorcoordinates[j].y);
+			           
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newExteriorcoordinates.add(cd);
 			                 }
 	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
@@ -672,9 +761,9 @@ public class ShpTool extends JFrame {
 	                			 Coordinate[] interiorcoordinates = interiorRing.getCoordinates();
 	                			 List<Coordinate> newInteriorcoordinates = new ArrayList<Coordinate>();
 	                			 for(int n =0 ;n<interiorcoordinates.length ;n++){
-				                	 Gps gps = PositionUtil.bd09_To_Gps84(interiorcoordinates[n].y,interiorcoordinates[n].x);
+				                	 Location gps = PositionUtil.bd09_To_wgs84(interiorcoordinates[n].x,interiorcoordinates[n].y);
 				                	 
-				                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+				                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 				                	 newInteriorcoordinates.add(cd);
 				                 }
 	                			 Coordinate[] tem = newInteriorcoordinates.toArray(new Coordinate[newInteriorcoordinates.size()]);
@@ -706,9 +795,9 @@ public class ShpTool extends JFrame {
 	   
 	                		 List<Coordinate> newLineStringcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<lineStringcoordinates.length ;j++){
-			                	 Gps gps = PositionUtil.bd09_To_Gps84(lineStringcoordinates[j].y,lineStringcoordinates[j].x);
+			                	 Location gps = PositionUtil.bd09_To_wgs84(lineStringcoordinates[j].x,lineStringcoordinates[j].y);
 			                	 
-			                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newLineStringcoordinates.add(cd);
 			                 }
 	                		 Coordinate[] newls = newLineStringcoordinates.toArray(new Coordinate[newLineStringcoordinates.size()]);
@@ -729,9 +818,9 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 Location gps = PositionUtil.bd09_To_wgs84(coordinates[i].x,coordinates[i].y);
 		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 System.out.println(coords);
@@ -745,9 +834,8 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
-		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
-		                	 System.out.println(gps.getWgLon());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Location gps = PositionUtil.bd09_To_wgs84(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 		                
@@ -763,8 +851,8 @@ public class ShpTool extends JFrame {
 	                	 
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 
-		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Location gps = PositionUtil.bd09_To_wgs84(coordinates[i].x,coordinates[i].y);
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 LineString slineString =geometryFactory.createLineString(coords.toArray(new Coordinate[coords.size()]));
@@ -777,9 +865,9 @@ public class ShpTool extends JFrame {
 	                	 coordinates= geometry.getCoordinates();
 	                	 for(int i =0 ;i<coordinates.length ;i++){
 	                		 System.out.println(coordinates[i].toString());
-		                	 Gps gps = PositionUtil.bd09_To_Gps84(coordinates[i].y,coordinates[i].x);
+		                	 Location gps = PositionUtil.bd09_To_wgs84(coordinates[i].x,coordinates[i].y);
 		                	 System.out.println(gps.toString());
-		                	 Coordinate cd  = new Coordinate(gps.getWgLon(),gps.getWgLat());
+		                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 		                	 coords.add(cd);
 		                 }
 	                	 Point point =geometryFactory.createPoint(coords.get(0));
@@ -811,6 +899,29 @@ public class ShpTool extends JFrame {
 
 	        JFileDataStoreChooser chooser = new JFileDataStoreChooser("shp");
 	        chooser.setDialogTitle("Save shapefile");
+	        chooser.setSelectedFile(new File(newPath));
+
+	        int returnVal = chooser.showSaveDialog(null);
+
+	        if (returnVal != JFileDataStoreChooser.APPROVE_OPTION) {
+	            // the user cancelled the dialog
+	            System.exit(0);
+	        }
+
+	        File newFile = chooser.getSelectedFile();
+	        if (newFile.equals(file)) {
+	            System.out.println("Error: cannot replace " + file);
+	            System.exit(0);
+	        }
+
+	        return newFile;
+	    }
+	 private static File getNewCSVFile(File file) {
+	        String path = file.getAbsolutePath();
+	        String newPath = path.substring(0, path.length() - 4) + ".csv";
+
+	        JFileDataStoreChooser chooser = new JFileDataStoreChooser("csv");
+	        chooser.setDialogTitle("Save CSV File");
 	        chooser.setSelectedFile(new File(newPath));
 
 	        int returnVal = chooser.showSaveDialog(null);
