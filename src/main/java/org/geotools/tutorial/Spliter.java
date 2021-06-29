@@ -1,25 +1,7 @@
 package org.geotools.tutorial;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.JOptionPane;
-
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
-import org.geotools.data.DataUtilities;
-import org.geotools.data.DefaultTransaction;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Transaction;
+import com.vividsolutions.jts.geom.*;
+import org.geotools.data.*;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
@@ -36,17 +18,15 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.swing.data.JFileDataStoreChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.filter.Filter;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.util.*;
 
 
 /**
@@ -74,7 +54,9 @@ public class Spliter
 	    map.put("url", file.toURI().toURL());
 
 	    DataStore dataStore = DataStoreFinder.getDataStore(map);
-	    String typeName = dataStore.getTypeNames()[0];
+		((ShapefileDataStore) dataStore).setCharset(Charset.forName("utf-8"));
+
+		String typeName = dataStore.getTypeNames()[0];
 
 	    FeatureSource<SimpleFeatureType, SimpleFeature> source = dataStore
 	            .getFeatureSource(typeName);
@@ -108,7 +90,7 @@ public class Spliter
                 SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(newstf);
                 List<Object> attr=feature.getAttributes();//属性名称
                 attr.add(0);//第一个feature默认值
-                System.out.println(attr);
+                System.out.println(attr.get(1));
 	            GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
 	            SimpleFeature multifeature=null;
 	            switch(geomType){

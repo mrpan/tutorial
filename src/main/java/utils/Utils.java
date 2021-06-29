@@ -259,11 +259,11 @@ public class Utils {
 		if(transformType==PositionUtil.W2G) {
 			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
 		}else if(transformType==PositionUtil.G2W) {
-			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
+			gps = PositionUtil.gcj02_To_wgs84(lon, lat);
 		}else if(transformType==PositionUtil.W2B) {
-			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
+			gps = PositionUtil.wgs84_To_bd09(lon, lat);
 		}else if(transformType==PositionUtil.B2W) {
-			gps = PositionUtil.wgs84_To_gcj02(lon, lat);
+			gps = PositionUtil.bd09_To_wgs84(lon, lat);
 		}else if(transformType==PositionUtil.NoGB) {
 			gps.setLon(lon);
 			gps.setLat(lat);

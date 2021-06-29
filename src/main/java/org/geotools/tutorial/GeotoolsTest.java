@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import org.geotools.data.*;
 import org.geotools.factory.*;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureCollections;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.ReferencingFactoryFinder;
@@ -105,6 +106,7 @@ public class GeotoolsTest {
 			System.out.println(factory);
 		}
 		System.out.println(GeoTools.getBuildProperties());
+		FeatureCollection collection = FeatureCollections.newCollection();
 
 	}
 

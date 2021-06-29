@@ -185,5 +185,7 @@ public class PositionUtil {
         System.out.println("gcj :" + gcj);
         Location wgs84 =gcj02_To_wgs84(100.30960656823223,30.938250541999903);
         System.out.println("wgs84 :" + wgs84);
+        Location wgs2bd=wgs84_To_bd09(103.456,30.456);
+        System.out.println("bd02="+wgs2bd);
     }
 }
