@@ -1,8 +1,5 @@
 package org.geotools.tutorial;
 
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.*;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
@@ -23,6 +20,9 @@ import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.*;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import utils.Location;
@@ -349,9 +349,9 @@ public class ShpTool extends JFrame {
 	                	 int geometryNum = geometry.getNumGeometries();
 	                	 List<Polygon> polygons = new ArrayList<Polygon>(); 
 	                	 for(int i=0;i<geometryNum;i++){//polygon个数
-	                		 Polygon po= (Polygon) geometry.getGeometryN(i); 
+							 Polygon po= (Polygon) geometry.getGeometryN(i);
 	                		 int numInteriorRing = po.getNumInteriorRing();
-	                		 LineString  exteriorRing = po.getExteriorRing();
+	                		 LineString exteriorRing = po.getExteriorRing();
 	                		 Coordinate[] exteriorcoordinates = exteriorRing.getCoordinates();
 	                		 List<Coordinate> newExteriorcoordinates = new ArrayList<Coordinate>();
 	                		 for(int j =0 ;j<exteriorcoordinates.length ;j++){
@@ -360,7 +360,7 @@ public class ShpTool extends JFrame {
 			                	 Coordinate cd  = new Coordinate(gps.getLon(),gps.getLat());
 			                	 newExteriorcoordinates.add(cd);
 			                 }
-	                		 LinearRing  newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
+	                		 LinearRing newExteriorRing = geometryFactory.createLinearRing(newExteriorcoordinates.toArray(new Coordinate[newExteriorcoordinates.size()]));
 	                		 List<LinearRing> newInteriorRings = new ArrayList<LinearRing>();
 	                		 for(int j=0;j<numInteriorRing;j++){//内圈
 	                			 LineString interiorRing = po.getInteriorRingN(j);
@@ -377,7 +377,7 @@ public class ShpTool extends JFrame {
 	                			 newInteriorRings.add(newInteriorRing);
 	                		 }
 	                		 LinearRing[] ls =  newInteriorRings.toArray(new LinearRing[newInteriorRings.size()]);
-	                		 Polygon polygon =geometryFactory.createPolygon(newExteriorRing, ls);
+	                		 org.locationtech.jts.geom.Polygon polygon =geometryFactory.createPolygon(newExteriorRing, ls);
 	                		 polygons.add(polygon);
 	                	 }
 	                	 
@@ -631,7 +631,7 @@ public class ShpTool extends JFrame {
 		                	 coords.add(cd);
 		                 }
 		                
-		                 Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
+		                 org.locationtech.jts.geom.Polygon spolygon =geometryFactory.createPolygon(coords.toArray(new Coordinate[coords.size()]));
 		               
 		                  attr.set(0, spolygon);
 				          multifeature = featureBuilder.buildFeature(null, attr.toArray());

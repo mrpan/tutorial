@@ -1,7 +1,8 @@
 package org.geotools.tutorial;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.shape.random.RandomPointsInGridBuilder;
+
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.shape.random.RandomPointsInGridBuilder;
 
 public class CreateRandomShapeFunctions {
 
@@ -9,7 +10,7 @@ public class CreateRandomShapeFunctions {
 		// TODO Auto-generated method stub
 
 	}
-	public static Geometry randomPointsInGrid(Geometry geom,int nPts) {
+	public static Geometry randomPointsInGrid(Geometry geom, int nPts) {
 		RandomPointsInGridBuilder shapeBuilder =new RandomPointsInGridBuilder();
 		shapeBuilder.setExtent(geom.getEnvelopeInternal());
 		shapeBuilder.setNumPoints(nPts);

@@ -1,17 +1,16 @@
 package org.geotools.tutorial;
 
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.OutStream;
+import org.locationtech.jts.io.OutputStreamOutStream;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.google.common.primitives.Bytes;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.OutStream;
-import com.vividsolutions.jts.io.OutputStreamOutStream;
-
 public class TWKB {
 	private  ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-	private  OutStream byteArrayOutStream = new OutputStreamOutStream(byteArrayOS);
+	private OutStream byteArrayOutStream = new OutputStreamOutStream(byteArrayOS);
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -95,7 +94,7 @@ public class TWKB {
 	    }
 	    return byteArrayOS.toByteArray();
 	 }
-	 public void write(Geometry geom,OutStream os) throws IOException {
+	 public void write(Geometry geom, OutStream os) throws IOException {
 		 if(geom instanceof Point) {
 			 writePoint((Point) geom,os);
 		 }

@@ -1,26 +1,25 @@
 package org.geotools.tutorial;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ByteOrderValues;
+import org.locationtech.jts.io.WKBWriter;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ByteOrderValues;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
 
 public class WKBUtil {
-	public static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory( null );  
+	public static GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory( null );
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 //		Coordinate coord = new Coordinate(4, 5);  
-		Coordinate coord = new Coordinate(1, 2);  
-	    Point point = geometryFactory.createPoint( coord ); 
+		Coordinate coord = new Coordinate(1, 2);
+	    Point point = geometryFactory.createPoint( coord );
 //	    point.normalize();
 	    point.setSRID(4326);
-	    WKBWriter wkbWriter = new WKBWriter(2,ByteOrderValues.LITTLE_ENDIAN,true); 
+	    WKBWriter wkbWriter = new WKBWriter(2, ByteOrderValues.LITTLE_ENDIAN,true);
 	    System.out.println(point);
 	    String wkb = WKBWriter.toHex(wkbWriter.write(point)); 
 	    System.out.println(wkb);

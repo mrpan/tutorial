@@ -1,27 +1,20 @@
 package org.geotools.tutorial;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.measure.Measure;
-import javax.measure.quantity.Length;
-import javax.measure.unit.SI;
-
-import org.geotools.data.DataUtilities;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.operation.buffer.BufferOp;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -32,13 +25,12 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.buffer.BufferOp;
-
 import utils.Utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Buffer {
 	private SimpleFeatureType simpleFeaturetype = null;
@@ -82,7 +74,7 @@ public class Buffer {
 		if (!(originCRS instanceof ProjectedCRS)) {
 
 			Point c = geom.getCentroid();
-			double x = c.getCoordinate().x;
+			double x = ((Point) c).getCoordinate().x;
 			double y = c.getCoordinate().y;
 
 			String code = "AUTO:42001," + x + "," + y;//通用横轴墨卡托
@@ -149,7 +141,7 @@ public class Buffer {
 
 	private Geometry buffer(Geometry geom, double distance) {
 
-		Geometry buffer = geom.buffer(distance,5,BufferOp.CAP_FLAT);
+		Geometry buffer = geom.buffer(distance,5, BufferOp.CAP_FLAT);
 
 		return buffer;
 

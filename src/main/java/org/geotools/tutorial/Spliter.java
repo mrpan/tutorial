@@ -1,6 +1,5 @@
 package org.geotools.tutorial;
 
-import com.vividsolutions.jts.geom.*;
 import org.geotools.data.*;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -16,6 +15,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.swing.data.JFileDataStoreChooser;
+import org.locationtech.jts.geom.*;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.FactoryException;
@@ -96,7 +96,7 @@ public class Spliter
 	            switch(geomType){
 	            case "MultiLineString":
 	            	 int lineStringNum = geometry.getNumGeometries();
-	            	 List<LineString> lineStrings = new ArrayList<LineString>(); 
+	            	 List<LineString> lineStrings = new ArrayList<LineString>();
                 	 for(int i=0;i<lineStringNum;i++){//多个LineString
                 		 LineString lineString = (LineString) geometry.getGeometryN(i);
                 		 lineStrings = createSegments(lineString,lineLength);

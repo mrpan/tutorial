@@ -1,15 +1,17 @@
 package org.geotools.tutorial;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
 import org.geotools.data.*;
-import org.geotools.factory.*;
-import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.FeatureCollections;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.ReferencingFactoryFinder;
 import org.geotools.styling.StyleFactory;
+import org.geotools.util.factory.FactoryCreator;
+import org.geotools.util.factory.FactoryRegistry;
+import org.geotools.util.factory.GeoTools;
+import org.geotools.util.factory.Hints;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
 import org.opengis.feature.FeatureFactory;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureTypeFactory;
@@ -26,7 +28,10 @@ import org.opengis.referencing.datum.DatumFactory;
 import org.opengis.referencing.operation.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class GeotoolsTest {
 
@@ -53,8 +58,7 @@ public class GeotoolsTest {
 		FeatureTypeFactory ftFactory=CommonFactoryFinder.getFeatureTypeFactory(null);
 //		SimpleFeatureType sftype=ftFactory.createSimpleFeatureType(null, null, null, (Boolean) false, null, null, null);
 		
-		FeatureCollections fc=CommonFactoryFinder.getFeatureCollections();
-		
+
 		File file = new File("example.shp");
 		Map map = new HashMap();
 		map.put( "url", file.toURL() );
@@ -72,7 +76,7 @@ public class GeotoolsTest {
 		Coordinate cd=null;
 //		Point p=geometryFactory.createPoint(cd);
 
-		PrecisionModel pm =geometryFactory.getPrecisionModel();
+		PrecisionModel pm = ((GeometryFactory) geometryFactory).getPrecisionModel();
 		System.out.println(pm.getType());
 
 		DatumFactory datumFactory= ReferencingFactoryFinder.getDatumFactory(null);
@@ -100,13 +104,9 @@ public class GeotoolsTest {
 
 		Hints hints = GeoTools.getDefaultHints();
 		FactoryRegistry registry = new FactoryCreator(Arrays.asList(new Class[] {FilterFactory.class,}));
-		Iterator i = registry.getServiceProviders( FilterFactory.class, null, hints );
-		while( i.hasNext() ){
-			FilterFactory factory = (FilterFactory) i.next();
-			System.out.println(factory);
-		}
+
 		System.out.println(GeoTools.getBuildProperties());
-		FeatureCollection collection = FeatureCollections.newCollection();
+
 
 	}
 

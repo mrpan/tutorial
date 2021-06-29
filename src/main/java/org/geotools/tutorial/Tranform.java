@@ -2,12 +2,9 @@ package org.geotools.tutorial;
 
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
-
-import com.vividsolutions.jts.geom.Coordinate;
 
 public class Tranform {
 
@@ -18,7 +15,7 @@ public class Tranform {
 		Coordinate c = t.transformCoordinate("EPSG:4326", "EPSG:4490", point);
 		System.out.println(c);
 	}
-	public Coordinate transformCoordinate(String fromProj,String toProj,double[] point) throws Exception {
+	public Coordinate transformCoordinate(String fromProj, String toProj, double[] point) throws Exception {
 		CoordinateReferenceSystem sourceCRS = CRS.decode(fromProj);
 		CoordinateReferenceSystem targetCRS = CRS.decode(toProj);
 		MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS,true);
